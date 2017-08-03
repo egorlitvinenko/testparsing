@@ -19,4 +19,4 @@ The results are not final. All implementations could/should be improved.
 
 Test configuration
 
-[1] Ubuntu 14.04, Clickhouse 1.1.54189, x64, Little Endian, 4 CPU, L1d cache: 32K, L1i cache: 32K, L2 cache: 256K, L3 cache: 3072K, Intel(R) Core(TM) i5-3230M CPU @ 2.60GHz, 16 GB DDR3 RAM; Samsung SSD 850 EVO 250GB (EMT01B6Q)
+[1] Ubuntu 14.04, 3.19.0-66-generic, Clickhouse 1.1.54189, x64, Little Endian, 4 CPU, L1d cache: 32K, L1i cache: 32K, L2 cache: 256K, L3 cache: 3072K, Intel(R) Core(TM) i5-3230M CPU @ 2.60GHz, 16 GB DDR3 RAM; Samsung SSD 850 EVO 250GB (EMT01B6Q)
