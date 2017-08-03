@@ -4,6 +4,11 @@ It is only tests.
 No guaranties.
 Code could be not accurate, duplicated, so it is not an example "how to do".
 
+Two scenarios:
+
+1. Read 5 columns, 1 M rows, all strings and write to CH;
+1. Read 9 columns, 1 M rows, parse 1 date, 4 integer, 4 double, write to CH;
+
 Last results:
 * Flink (StreamingJob, 5 string columns, 1M rows to Clickhouse, parallelism 1 ~ 5 seconds, parallelism 2 - 3 seconds) [1];
 * Spark (SimpleReadCsvAndWriteToClickhouse ~20 seconds (when writing to CH), 1 date, 4 double, 4 integer, 1M rows) [1];
