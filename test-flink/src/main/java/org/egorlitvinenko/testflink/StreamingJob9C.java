@@ -61,7 +61,7 @@ public class StreamingJob9C {
         // set up the streaming execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        final Path path = new Path("r1m__s1__d4__i4__errors_0.csv");
+        final Path path = new Path("r1k__s1__d4__i4__errors_0_nq.csv");
 
         DataStream<Row> dataStream = env
                 .createInput(createCsvInputFormat(path), TypeInformation.of(
@@ -80,7 +80,7 @@ public class StreamingJob9C {
                         JDBCOutputFormat.buildJDBCOutputFormat()
                                 .setDrivername("ru.yandex.clickhouse.ClickHouseDriver")
                                 .setDBUrl("jdbc:clickhouse://localhost:9123")
-                                .setQuery("INSERT INTO test.TEST_DATA_1M_9C_DATE (ID, f1, f2, f3, f4, f5, f6, f7, f8) values (?, ?, ?, ?, ?, ?, ?, ?, ?))")
+                                .setQuery("INSERT INTO test.TEST_DATA_1M_9C_DATE (ID, f1, f2, f3, f4, f5, f6, f7, f8) values (?, ?, ?, ?, ?, ?, ?, ?, ?)")
                                 .setSqlTypes(new int[]{Types.DATE,
                                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER,
                                         Types.DOUBLE, Types.DOUBLE, Types.DOUBLE, Types.DOUBLE})
