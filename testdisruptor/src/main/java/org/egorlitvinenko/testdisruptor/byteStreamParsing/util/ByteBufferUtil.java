@@ -41,4 +41,22 @@ public class ByteBufferUtil {
         byteBuffer.putInt(start + 8, value.getDayOfMonth());
     }
 
+    public static java.sql.Date getSqlDateAtPositionInArray(ByteBuffer byteBuffer, int pos) {
+        int start = ByteSizeUtil.localDates(pos);
+        try {
+            return new java.sql.Date(byteBuffer.getInt(start),
+                    byteBuffer.getInt(start + 4), byteBuffer.getInt(start + 8));
+        } catch (Exception e) {
+            System.out.println("null");
+            throw e;
+        }
+    }
+
+    public static void setSqlDateAtPositionInArray(ByteBuffer byteBuffer, int pos, java.sql.Date value) {
+        int start = ByteSizeUtil.localDates(pos);
+        byteBuffer.putInt(start, value.getYear());
+        byteBuffer.putInt(start + 4, value.getMonth());
+        byteBuffer.putInt(start + 8, value.getDay());
+    }
+
 }

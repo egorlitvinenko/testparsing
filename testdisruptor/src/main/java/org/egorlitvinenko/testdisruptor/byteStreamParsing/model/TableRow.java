@@ -8,6 +8,14 @@ import java.time.LocalDate;
  */
 public interface TableRow extends AutoCloseable {
 
+    default int getScope() {
+        throw new IllegalStateException();
+    }
+
+    default int suggestScopeAndGet(int scope) {
+        throw new IllegalStateException();
+    }
+
     default void setDoublesIsFinished() {
         throw new IllegalStateException();
     }

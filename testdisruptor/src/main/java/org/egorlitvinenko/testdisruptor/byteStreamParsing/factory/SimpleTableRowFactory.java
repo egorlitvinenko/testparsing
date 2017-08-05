@@ -1,10 +1,7 @@
 package org.egorlitvinenko.testdisruptor.byteStreamParsing.factory;
 
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.*;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.util.ColumnType;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRow;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowIndexModel;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowTypeModel;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowWithArrays;
 
 /**
  * @author Egor Litvinenko

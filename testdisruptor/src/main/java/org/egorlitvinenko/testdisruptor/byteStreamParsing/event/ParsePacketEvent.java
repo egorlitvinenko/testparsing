@@ -1,6 +1,9 @@
-package org.egorlitvinenko.testdisruptor.byteStreamParsing.model;
+package org.egorlitvinenko.testdisruptor.byteStreamParsing.event;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRow;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowIndexModel;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowTypeModel;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.group.States;
 
 import java.sql.Date;
@@ -10,7 +13,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author Egor Litvinenko
  */
-public class TableRowWithArrays implements TableRow {
+public class ParsePacketEvent implements TableRow {
+
+    //region End flag
+    private boolean end = false;
+
+    public boolean isEnd() {
+        return end;
+    }
+
+    public void setEnd(boolean end) {
+        this.end = end;
+    }
+    //endregion
 
     public volatile int length;
 
@@ -32,7 +47,7 @@ public class TableRowWithArrays implements TableRow {
 
     private int id;
 
-    public TableRowWithArrays(TableRowIndexModel indexModel,
+    public ParsePacketEvent(TableRowIndexModel indexModel,
                               TableRowTypeModel typeModel) {
 
         this.id = -1;
@@ -222,7 +237,7 @@ public class TableRowWithArrays implements TableRow {
         return this.sqlDates[sqlDateIndex];
     }
 
-    private int calcLength(TableRowWithArrays tableRow) {
+    private int calcLength(ParsePacketEvent tableRow) {
         return this.indexModel.indexInType.length;
     }
 
@@ -240,7 +255,6 @@ public class TableRowWithArrays implements TableRow {
         closed.set(Boolean.FALSE);
     }
 
-    @Override
     public boolean isClosed() {
         return this.closed.get();
     }

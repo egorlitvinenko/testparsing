@@ -3,7 +3,7 @@ package org.egorlitvinenko.testdisruptor.byteStreamParsing.factory;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRow;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowIndexModel;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowTypeModel;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowWithArrays;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowWithOwnStringArrays;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.util.ColumnType;
 
 /**
@@ -22,7 +22,7 @@ public class PooledTableRowFactory implements TableRowFactory {
         this.pool = ArrayTableRowPool.allocate(100_100, new ArrayTableRowPool.TableRowProvider() {
             @Override
             public TableRow create() {
-                return new TableRowWithArrays(indexModel, typeModel);
+                return new TableRowWithOwnStringArrays(indexModel, typeModel);
             }
         });
     }

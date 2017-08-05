@@ -1,18 +1,19 @@
 package org.egorlitvinenko.testdisruptor.byteStreamParsing.disruptor;
 
-import com.lmax.disruptor.EventFactory;
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.SleepingWaitStrategy;
-import com.lmax.disruptor.WaitStrategy;
+import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.ByteStreamParsingConstants;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.event.ParseBatchTableRowEvent;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.batchAndCompareWithType.*;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.event.ParsePacketEvent;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.compareWithType.StringToDoubleParsePacketHandler;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.compareWithType.StringToLocalDateParsePacketHandler;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.compareWithType.StringToSqlDateParsePacketHandler;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.parsePacket.ClickhouseParsePacketHandler;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowIndexModel;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowTypeModel;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.parsing.spi.PositionedIsoLocalDateParser;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.parsing.spi.PositionedIsoSqlDateParser;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.parsing.spi.SimpleDoubleValueOf;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.parsing.spi.SimpleIntegerValueOf;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.parsing.spi.SimpleIsoLocalDateParser;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.util.ColumnType;
 import org.egorlitvinenko.testdisruptor.smallstream.disruptor.AbstractDisruptorFactory;
 
@@ -26,24 +27,32 @@ import java.util.stream.Collectors;
 /**
  * @author Egor Litvinenko
  */
-public class ParseBatchCsvDisruptor extends AbstractDisruptorFactory<ParseBatchTableRowEvent> {
+public class ParsePacketDisruptor extends AbstractDisruptorFactory<ParsePacketEvent> {
 
-    public Disruptor<ParseBatchTableRowEvent> createWriteToClickhouse(ThreadFactory threadFactory,
-                                                                      ColumnType[] types,
-                                                                      ClickhouseParseBatchTableRowHandler clickhouseHandler) {
+    private final TableRowTypeModel typeModel;
+    private final TableRowIndexModel indexModel;
+
+    public ParsePacketDisruptor(ColumnType[] types) {
+        typeModel = new TableRowTypeModel(types);
+        indexModel = new TableRowIndexModel(types);
+    }
+
+    public Disruptor<ParsePacketEvent> createWriteToClickhouse(ThreadFactory threadFactory,
+                                                               ColumnType[] types,
+                                                               ClickhouseParsePacketHandler clickhouseHandler) {
         // The factory for the event
-        EventFactory<ParseBatchTableRowEvent> factory = createEventFactory();
+        EventFactory<ParsePacketEvent> factory = createEventFactory();
 
         // Specify the size of the ring buffer, must be power of 2.
         int bufferSize = getRingBufferSize();
 
         // Construct the Disruptor
-        Disruptor<ParseBatchTableRowEvent> disruptor =
+        Disruptor<ParsePacketEvent> disruptor =
                 new Disruptor<>(factory, bufferSize, threadFactory,
                         getProducerType(), getWaitStrategy());
 
         // Connect the handler
-        final EventHandler<ParseBatchTableRowEvent>[] parseHandlers = getParseHandlers(types);
+        final EventHandler<ParsePacketEvent>[] parseHandlers = getParseHandlers(types);
         if (parseHandlers.length > 0) {
             disruptor
                     .handleEventsWith(parseHandlers)
@@ -53,17 +62,20 @@ public class ParseBatchCsvDisruptor extends AbstractDisruptorFactory<ParseBatchT
         }
 
         // Start the Disruptor, starts all threads running
-        disruptor.start();
+        RingBuffer<ParsePacketEvent> ringBuffer = disruptor.start();
 
         return disruptor;
     }
 
+
     @Override
-    protected EventFactory<ParseBatchTableRowEvent> createEventFactory() {
-        return new EventFactory<ParseBatchTableRowEvent>() {
+    protected EventFactory<ParsePacketEvent> createEventFactory() {
+        return new EventFactory<ParsePacketEvent>() {
             @Override
-            public ParseBatchTableRowEvent newInstance() {
-                return new ParseBatchTableRowEvent();
+            public ParsePacketEvent newInstance() {
+                return new ParsePacketEvent(
+                        ParsePacketDisruptor.this.indexModel,
+                        ParsePacketDisruptor.this.typeModel);
             }
         };
     }
@@ -80,43 +92,44 @@ public class ParseBatchCsvDisruptor extends AbstractDisruptorFactory<ParseBatchT
 
     @Override
     protected int getRingBufferSize() {
-        return ByteStreamParsingConstants.PARSED_TABLE_ROW_BUFFER;
+        return 1024 * 32;
     }
 
 
-    public static EventHandler<ParseBatchTableRowEvent>[] getParseHandlers(ColumnType[] types) {
+    public static EventHandler<ParsePacketEvent>[] getParseHandlers(ColumnType[] types) {
         Set<ColumnType> typeSet = Arrays.stream(types).collect(Collectors.toSet());
-        List<EventHandler<ParseBatchTableRowEvent>> handlers = new ArrayList<>();
+        List<EventHandler<ParsePacketEvent>> handlers = new ArrayList<>();
         for (ColumnType type : typeSet) {
             switch (type) {
                 case INT_32:
-                    handlers.add(new StringToInt32ParseBatchHandler(
+                    handlers.add(new org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.parsePacket.StringToInt32ParsePacketHandler(
                             new SimpleIntegerValueOf(),
                             ParsePacketCsvDisruptor.typeColumns(types, ColumnType.INT_32)
                     ));
                     break;
                 case DOUBLE:
-                    handlers.add(new StringToDoubleParseBatchHandler(
+                    handlers.add(new org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.parsePacket.StringToDoubleParsePacketHandler(
                             new SimpleDoubleValueOf(),
                             ParsePacketCsvDisruptor.typeColumns(types, ColumnType.DOUBLE)
                     ));
                     break;
                 case LOCAL_DATE:
-                    handlers.add(new StringToLocalDateParseBatchHandler(
-                            new SimpleIsoLocalDateParser(),
+                    handlers.add(new org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.parsePacket.StringToLocalDateParsePacketHandler(
+                            new PositionedIsoLocalDateParser(),
                             ParsePacketCsvDisruptor.typeColumns(types, ColumnType.LOCAL_DATE)
                     ));
                     break;
                 case SQL_DATE:
-                    handlers.add(new StringToSqlDateParseBatchHandler(
+                    handlers.add(new org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.parsePacket.StringToSqlDateParsePacketHandler(
                             new PositionedIsoSqlDateParser(),
                             ParsePacketCsvDisruptor.typeColumns(types, ColumnType.SQL_DATE)
                     ));
                     break;
             }
         }
-        EventHandler<ParseBatchTableRowEvent>[] result = new EventHandler[handlers.size()];
+        EventHandler<ParsePacketEvent>[] result = new EventHandler[handlers.size()];
         for (int i = 0; i < handlers.size(); ++i) result[i] = handlers.get(i);
         return result;
     }
+
 }

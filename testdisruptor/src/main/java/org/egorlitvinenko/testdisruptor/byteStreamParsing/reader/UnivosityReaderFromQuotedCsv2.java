@@ -79,6 +79,7 @@ public class UnivosityReaderFromQuotedCsv2 {
             this.hasString = has(types, ColumnType.STRING);
             this.hasLocalDate = has(types, ColumnType.LOCAL_DATE);
             this.hasSqlDate = has(types, ColumnType.SQL_DATE);
+
         }
 
         private boolean has(ColumnType[] types, ColumnType type) {
@@ -116,6 +117,7 @@ public class UnivosityReaderFromQuotedCsv2 {
                         break;
                 }
             }
+            // TODO publishEvents?
             if (hasInt32) {
                 ringBuffer.publishEvent(TRANSLATOR, tableRow, ColumnType.INT_32, Boolean.FALSE);
             }

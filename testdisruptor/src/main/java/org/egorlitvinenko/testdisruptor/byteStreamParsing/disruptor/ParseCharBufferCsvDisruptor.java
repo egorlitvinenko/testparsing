@@ -7,8 +7,9 @@ import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.ByteStreamParsingConstants;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.event.ParseBatchTableRowEvent;
-import org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.batchAndCompareWithType.*;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.event.ParseCharBufferTableRowEvent;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.batchAndCompareWithType.ClickhouseParseCharBufferTableRowHandler;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.charBufferAndcompareWithType.*;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.parsing.spi.PositionedIsoSqlDateParser;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.parsing.spi.SimpleDoubleValueOf;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.parsing.spi.SimpleIntegerValueOf;
@@ -26,24 +27,27 @@ import java.util.stream.Collectors;
 /**
  * @author Egor Litvinenko
  */
-public class ParseBatchCsvDisruptor extends AbstractDisruptorFactory<ParseBatchTableRowEvent> {
+public class ParseCharBufferCsvDisruptor extends AbstractDisruptorFactory<ParseCharBufferTableRowEvent> {
 
-    public Disruptor<ParseBatchTableRowEvent> createWriteToClickhouse(ThreadFactory threadFactory,
+    int columnSize;
+
+    public Disruptor<ParseCharBufferTableRowEvent> createWriteToClickhouse(ThreadFactory threadFactory,
                                                                       ColumnType[] types,
-                                                                      ClickhouseParseBatchTableRowHandler clickhouseHandler) {
+                                                                      ClickhouseParseCharBufferTableRowHandler clickhouseHandler) {
+        columnSize = types.length;
         // The factory for the event
-        EventFactory<ParseBatchTableRowEvent> factory = createEventFactory();
+        EventFactory<ParseCharBufferTableRowEvent> factory = createEventFactory();
 
         // Specify the size of the ring buffer, must be power of 2.
         int bufferSize = getRingBufferSize();
 
         // Construct the Disruptor
-        Disruptor<ParseBatchTableRowEvent> disruptor =
+        Disruptor<ParseCharBufferTableRowEvent> disruptor =
                 new Disruptor<>(factory, bufferSize, threadFactory,
                         getProducerType(), getWaitStrategy());
 
         // Connect the handler
-        final EventHandler<ParseBatchTableRowEvent>[] parseHandlers = getParseHandlers(types);
+        final EventHandler<ParseCharBufferTableRowEvent>[] parseHandlers = getParseHandlers(types);
         if (parseHandlers.length > 0) {
             disruptor
                     .handleEventsWith(parseHandlers)
@@ -59,11 +63,11 @@ public class ParseBatchCsvDisruptor extends AbstractDisruptorFactory<ParseBatchT
     }
 
     @Override
-    protected EventFactory<ParseBatchTableRowEvent> createEventFactory() {
-        return new EventFactory<ParseBatchTableRowEvent>() {
+    protected EventFactory<ParseCharBufferTableRowEvent> createEventFactory() {
+        return new EventFactory<ParseCharBufferTableRowEvent>() {
             @Override
-            public ParseBatchTableRowEvent newInstance() {
-                return new ParseBatchTableRowEvent();
+            public ParseCharBufferTableRowEvent newInstance() {
+                return new ParseCharBufferTableRowEvent(columnSize);
             }
         };
     }
@@ -84,38 +88,38 @@ public class ParseBatchCsvDisruptor extends AbstractDisruptorFactory<ParseBatchT
     }
 
 
-    public static EventHandler<ParseBatchTableRowEvent>[] getParseHandlers(ColumnType[] types) {
+    public static EventHandler<ParseCharBufferTableRowEvent>[] getParseHandlers(ColumnType[] types) {
         Set<ColumnType> typeSet = Arrays.stream(types).collect(Collectors.toSet());
-        List<EventHandler<ParseBatchTableRowEvent>> handlers = new ArrayList<>();
+        List<EventHandler<ParseCharBufferTableRowEvent>> handlers = new ArrayList<>();
         for (ColumnType type : typeSet) {
             switch (type) {
                 case INT_32:
-                    handlers.add(new StringToInt32ParseBatchHandler(
+                    handlers.add(new StringToInt32ParseCharBufferHandler(
                             new SimpleIntegerValueOf(),
                             ParsePacketCsvDisruptor.typeColumns(types, ColumnType.INT_32)
                     ));
                     break;
                 case DOUBLE:
-                    handlers.add(new StringToDoubleParseBatchHandler(
+                    handlers.add(new StringToDoubleParseCharBufferHandler(
                             new SimpleDoubleValueOf(),
                             ParsePacketCsvDisruptor.typeColumns(types, ColumnType.DOUBLE)
                     ));
                     break;
                 case LOCAL_DATE:
-                    handlers.add(new StringToLocalDateParseBatchHandler(
+                    handlers.add(new StringToLocalDateParseCharBufferHandler(
                             new SimpleIsoLocalDateParser(),
                             ParsePacketCsvDisruptor.typeColumns(types, ColumnType.LOCAL_DATE)
                     ));
                     break;
                 case SQL_DATE:
-                    handlers.add(new StringToSqlDateParseBatchHandler(
+                    handlers.add(new StringToSqlDateParseCharBufferHandler(
                             new PositionedIsoSqlDateParser(),
                             ParsePacketCsvDisruptor.typeColumns(types, ColumnType.SQL_DATE)
                     ));
                     break;
             }
         }
-        EventHandler<ParseBatchTableRowEvent>[] result = new EventHandler[handlers.size()];
+        EventHandler<ParseCharBufferTableRowEvent>[] result = new EventHandler[handlers.size()];
         for (int i = 0; i < handlers.size(); ++i) result[i] = handlers.get(i);
         return result;
     }

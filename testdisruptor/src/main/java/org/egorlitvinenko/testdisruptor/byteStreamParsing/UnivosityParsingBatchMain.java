@@ -19,7 +19,7 @@ import java.util.concurrent.ThreadFactory;
  */
 public class UnivosityParsingBatchMain {
 
-    public static final int TABLE_ROW_BATCH_SIZE = 50;
+    public static final int TABLE_ROW_BATCH_SIZE = 10;
 
     public static void main(String[] args) throws Exception {
         System.out.println("Enter to start...");

@@ -1,7 +1,7 @@
 package org.egorlitvinenko.testdisruptor.byteStreamParsing.model;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.group.States;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @author Egor Litvinenko
  */
-public class TableRowWithArrays implements TableRow {
+public class TableRowWithOwnStringArrays implements TableRow {
 
     public volatile int length;
 
@@ -30,12 +30,10 @@ public class TableRowWithArrays implements TableRow {
 
     private AtomicBoolean closed;
 
-    private int id;
+    private String[] rowValues;
 
-    public TableRowWithArrays(TableRowIndexModel indexModel,
-                              TableRowTypeModel typeModel) {
-
-        this.id = -1;
+    public TableRowWithOwnStringArrays(TableRowIndexModel indexModel,
+                                       TableRowTypeModel typeModel) {
 
         this.typeModel = typeModel;
         this.indexModel = indexModel;
@@ -45,6 +43,8 @@ public class TableRowWithArrays implements TableRow {
         this.doubles = hasDoubles() ? new double[typeModel.doubleGroup.length] : null;
         this.strings = hasStrings() ? new String[typeModel.stringGroup.length] : null;
         this.sqlDates = hasSqlDates() ? new Date[typeModel.sqlDateGroup.length] : null;
+
+        this.rowValues = new String[typeModel.types.length];
 
         this.localDateIsFinished = new AtomicBoolean(!hasLocalDates());
         this.doubleIsFinished = new AtomicBoolean(!hasDoubles());
@@ -56,31 +56,20 @@ public class TableRowWithArrays implements TableRow {
         this.length = calcLength(this);
     }
 
-    public int getScope() {
-        return id;
-    }
-
-    public int suggestScopeAndGet(int scope) {
-        if (id == -1) {
-            id = scope;
-        }
-        return id;
-    }
-
     public int length() {
         return this.length;
     }
 
     public void setString(String value, int rowIndex) {
-        this.strings[indexModel.indexInType[rowIndex]] = value;
+        rowValues[rowIndex] = value;
     }
 
     public String getDoubleString(int rowIndex) {
-        return typeModel.doubleGroup.values[indexModel.indexInType[rowIndex]];
+        return rowValues[rowIndex];
     }
 
     public void setDoubleString(String value, int rowIndex) {
-        typeModel.doubleGroup.values[indexModel.indexInType[rowIndex]] = value;
+        rowValues[rowIndex] = value;
     }
 
     public void setDouble(double value, int rowIndex, byte state) {
@@ -90,7 +79,7 @@ public class TableRowWithArrays implements TableRow {
     }
 
     public String getInt32String(int rowIndex) {
-        return typeModel.int32Group.values[indexModel.indexInType[rowIndex]];
+        return rowValues[rowIndex];
     }
 
     public void setInt32(int value, int rowIndex, byte state) {
@@ -100,15 +89,15 @@ public class TableRowWithArrays implements TableRow {
     }
 
     public void setInt32String(String value, int rowIndex) {
-        typeModel.int32Group.values[indexModel.indexInType[rowIndex]] = value;
+        rowValues[rowIndex] = value;
     }
 
     public String getLocalDateString(int rowIndex) {
-        return typeModel.localDateGroup.values[indexModel.indexInType[rowIndex]];
+        return rowValues[rowIndex];
     }
 
     public void setLocalDateString(String value, int rowIndex) {
-        typeModel.localDateGroup.values[indexModel.indexInType[rowIndex]] = value;
+        rowValues[rowIndex] = value;
     }
 
     public void setLocalDate(LocalDate value, int rowIndex, byte state) {
@@ -118,14 +107,14 @@ public class TableRowWithArrays implements TableRow {
     }
 
     public String getSqlDateString(int rowIndex) {
-        return typeModel.sqlDateGroup.values[indexModel.indexInType[rowIndex]];
+        return rowValues[rowIndex];
     }
 
     public void setSqlDateString(String value, int rowIndex) {
-        typeModel.sqlDateGroup.values[indexModel.indexInType[rowIndex]] = value;
+        rowValues[rowIndex] = value;
     }
 
-    public void setSqlDate(Date value, int rowIndex, byte state) {
+    public void setSqlDate(java.sql.Date value, int rowIndex, byte state) {
         if (state == States.PARSED) {
             this.sqlDates[indexModel.indexInType[rowIndex]] = value;
         }
@@ -222,7 +211,7 @@ public class TableRowWithArrays implements TableRow {
         return this.sqlDates[sqlDateIndex];
     }
 
-    private int calcLength(TableRowWithArrays tableRow) {
+    private int calcLength(TableRowWithOwnStringArrays tableRow) {
         return this.indexModel.indexInType.length;
     }
 
@@ -232,7 +221,6 @@ public class TableRowWithArrays implements TableRow {
         int32IsFinished.set(!hasInt32());
         sqlDateIsFinished.set(!hasSqlDates());
         closed.set(Boolean.TRUE);
-        this.id = -1;
     }
 
     public void reset() {
