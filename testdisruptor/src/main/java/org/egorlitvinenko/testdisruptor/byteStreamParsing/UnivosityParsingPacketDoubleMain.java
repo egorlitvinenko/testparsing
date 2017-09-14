@@ -39,7 +39,7 @@ public class UnivosityParsingPacketDoubleMain {
                 testData.columnTypes,
                 i -> new ClickhouseParsePacketTableRowHandler(testData.insert,
                         new SimpleTableRowAndPrepareStatementAdapter()),
-                2);
+                2); // power of two
 
         UnivosityReaderFromQuotedCsv2 reader = new UnivosityReaderFromQuotedCsv2(',', '"',
                 testData.columnTypes, disruptor.getRingBuffer());

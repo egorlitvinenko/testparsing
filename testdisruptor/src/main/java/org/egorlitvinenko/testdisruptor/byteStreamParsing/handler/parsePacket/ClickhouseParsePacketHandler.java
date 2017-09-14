@@ -2,6 +2,8 @@ package org.egorlitvinenko.testdisruptor.byteStreamParsing.handler.parsePacket;
 
 import com.lmax.disruptor.EventHandler;
 import org.egorlitvinenko.testdisruptor.Clickhouse;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.adapter.PreparedStatementRowValuesAdapter;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.adapter.RowValuesAdapter;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.adapter.TableRowAndPrepareStatementAdapter;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.event.ParsePacketEvent;
 
@@ -14,7 +16,7 @@ import java.sql.SQLException;
  */
 public class ClickhouseParsePacketHandler implements EventHandler<ParsePacketEvent>, AutoCloseable {
 
-    private final TableRowAndPrepareStatementAdapter adapter;
+    private final RowValuesAdapter adapter;
     private final PreparedStatement preparedStatement;
     private final Connection connection;
     private final int batchSize;
@@ -23,7 +25,8 @@ public class ClickhouseParsePacketHandler implements EventHandler<ParsePacketEve
 
     public ClickhouseParsePacketHandler(String insert,
                                         int batchSize,
-                                        TableRowAndPrepareStatementAdapter tableRowAndPrepareStatementAdapter) {
+                                        @Deprecated
+                                        TableRowAndPrepareStatementAdapter adapter) {
         try {
             this.connection = Clickhouse.it().getConnection();
             this.preparedStatement = connection.prepareStatement(insert);
@@ -31,7 +34,7 @@ public class ClickhouseParsePacketHandler implements EventHandler<ParsePacketEve
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        this.adapter = tableRowAndPrepareStatementAdapter;
+        this.adapter = new PreparedStatementRowValuesAdapter(this.preparedStatement);
         this.batchSize = batchSize;
     }
 
@@ -42,7 +45,7 @@ public class ClickhouseParsePacketHandler implements EventHandler<ParsePacketEve
                 this.preparedStatement.executeBatch();
             }
         } else if (event.rowIsProcessed()) {
-            this.adapter.adopt(event, preparedStatement);
+            event.visit(this.adapter);
             event.close();
             this.preparedStatement.addBatch();
             this.counter++;

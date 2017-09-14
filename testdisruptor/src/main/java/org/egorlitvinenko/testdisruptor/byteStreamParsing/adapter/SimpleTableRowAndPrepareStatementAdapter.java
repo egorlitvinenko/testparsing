@@ -16,31 +16,31 @@ public class SimpleTableRowAndPrepareStatementAdapter implements TableRowAndPrep
     public void adopt(TableRow tableRow, PreparedStatement preparedStatement) throws Exception {
         if (tableRow.hasLocalDates()) {
             for (int i = 0, psIndex; i < tableRow.localDateLength(); ++i) {
-                psIndex = tableRow.getIndexInRow(ColumnType.LOCAL_DATE.ordinal(), i) + 1;
+                psIndex = tableRow.getIndexInRow(ColumnType.LOCAL_DATE, i) + 1;
                 preparedStatement.setDate(psIndex, Date.valueOf(tableRow.getLocalDate(i)));
             }
         }
         if (tableRow.hasSqlDates()) {
             for (int i = 0, psIndex; i < tableRow.sqlDateLength(); ++i) {
-                psIndex = tableRow.getIndexInRow(ColumnType.SQL_DATE.ordinal(), i) + 1;
+                psIndex = tableRow.getIndexInRow(ColumnType.SQL_DATE, i) + 1;
                 preparedStatement.setDate(psIndex, tableRow.getSqlDate(i));
             }
         }
         if (tableRow.hasDoubles()) {
             for (int i = 0, psIndex; i < tableRow.doubleLength(); ++i) {
-                psIndex = tableRow.getIndexInRow(ColumnType.DOUBLE.ordinal(), i) + 1;
+                psIndex = tableRow.getIndexInRow(ColumnType.DOUBLE, i) + 1;
                 preparedStatement.setDouble(psIndex, tableRow.getDouble(i));
             }
         }
         if (tableRow.hasInt32()) {
             for (int i = 0, psIndex; i < tableRow.int32Length(); ++i) {
-                psIndex = tableRow.getIndexInRow(ColumnType.INT_32.ordinal(), i) + 1;
+                psIndex = tableRow.getIndexInRow(ColumnType.INT_32, i) + 1;
                 preparedStatement.setInt(psIndex, tableRow.getInt(i));
             }
         }
         if (tableRow.hasStrings()) {
             for (int i = 0, psIndex; i < tableRow.stringLength(); ++i) {
-                psIndex = tableRow.getIndexInRow(ColumnType.STRING.ordinal(), i) + 1;
+                psIndex = tableRow.getIndexInRow(ColumnType.STRING, i) + 1;
                 preparedStatement.setString(psIndex, tableRow.getString(i));
             }
         }

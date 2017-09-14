@@ -13,6 +13,8 @@ public class TableRowTypeModel {
 
     public ColumnType[] types;
 
+    public final String[] values;
+
     public final StringGroup stringGroup;
 
     public final DoubleGroup doubleGroup;
@@ -23,6 +25,7 @@ public class TableRowTypeModel {
     public TableRowTypeModel(ColumnType[] types) {
         this.types = types;
         final int[] lengths = getLength(types);
+        this.values = new String[types.length];
         this.stringGroup = lengths[ColumnType.STRING.ordinal()] > 0 ? new StringGroup(lengths[ColumnType.STRING.ordinal()]) : null;
         this.doubleGroup = lengths[ColumnType.DOUBLE.ordinal()] > 0 ? new DoubleGroup(lengths[ColumnType.DOUBLE.ordinal()]) : null;
         this.int32Group = lengths[ColumnType.INT_32.ordinal()] > 0 ? new Int32Group(lengths[ColumnType.INT_32.ordinal()]) : null;

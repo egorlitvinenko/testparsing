@@ -1,0 +1,14 @@
+module test_disruptor {
+    requires jdk.unsupported;
+    requires commons.lang3;
+    requires java.sql;
+    requires disruptor;
+    requires spring.core;
+    requires univocity.parsers;
+    requires opencsv;
+    requires httpclient;
+    requires httpcore;
+    requires lz4;
+    requires guava;
+    requires jol.core;
+}

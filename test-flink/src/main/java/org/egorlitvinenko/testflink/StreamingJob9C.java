@@ -33,26 +33,27 @@ import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.types.Row;
 
 import java.sql.Types;
+import java.time.LocalDate;
 
 
 /**
  * Skeleton for a Flink Streaming Job.
- *
+ * <p>
  * For a full example of a Flink Streaming Job, see the SocketTextStreamWordCount.java
  * file in the same package/directory or have a look at the website.
- *
+ * <p>
  * You can also generate a .jar file that you can submit on your Flink
  * cluster.
  * Just type
- * 		mvn clean package
+ * mvn clean package
  * in the projects root directory.
  * You will find the jar in
- * 		target/test-flink-1.0-SNAPSHOT.jar
+ * target/test-flink-1.0-SNAPSHOT.jar
  * From the CLI you can then run
- * 		./bin/flink run -c StreamingJob target/test-flink-1.0-SNAPSHOT.jar
- *
+ * ./bin/flink run -c StreamingJob target/test-flink-1.0-SNAPSHOT.jar
+ * <p>
  * For more information on the CLI see:
- *
+ * <p>
  * http://flink.apache.org/docs/latest/apis/cli.html
  */
 public class StreamingJob9C {
@@ -67,13 +68,20 @@ public class StreamingJob9C {
                 .createInput(createCsvInputFormat(path), TypeInformation.of(
                         new TypeHint<Tuple9<String, String, String, String, String, String, String, String, String>>() {
                         }))
-                .map(new MapFunction<Tuple9<String,String,String,String,String,String,String,String,String>, Row>() {
+                .map(new MapFunction<Tuple9<String, String, String, String, String, String, String, String, String>, Row>() {
                     @Override
                     public Row map(Tuple9<String, String, String, String, String, String, String, String, String> value) throws Exception {
                         return RowParser.parse(value).row;
                     }
                 })
-                .returns(Row.class);
+                .returns(
+                        org.apache.flink.api.common.typeinfo.Types.ROW(
+                                TypeInformation.of(LocalDate.class),
+                                TypeInformation.of(Integer.class), TypeInformation.of(Integer.class),
+                                TypeInformation.of(Integer.class), TypeInformation.of(Integer.class),
+                                TypeInformation.of(Double.class), TypeInformation.of(Double.class),
+                                TypeInformation.of(Double.class), TypeInformation.of(Double.class)
+                        ));
 
         dataStream.addSink(
                 new OutputFormatSinkFunction<>(

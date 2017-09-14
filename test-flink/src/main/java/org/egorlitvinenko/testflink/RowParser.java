@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter;
  * @author Egor Litvinenko
  */
 public class RowParser {
-    private static DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
+    public static DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
     public static Result parse(Tuple5<String, String, String, String, String> tuple5) {
         boolean success = true;

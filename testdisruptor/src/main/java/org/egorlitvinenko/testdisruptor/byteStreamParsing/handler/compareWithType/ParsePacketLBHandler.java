@@ -22,7 +22,7 @@ public class ParsePacketLBHandler implements EventHandler<ParsePacketTableRowEve
     protected RingBuffer<ParsePacketTableRowEvent> getListener(TableRow tableRow) {
         int scope;
         if (-1 == tableRow.getScope()) {
-            listenersCounter = (listenersCounter + 1) % listeners.length;
+            listenersCounter = (listenersCounter + 1) & listeners.length;
             scope = tableRow.suggestScopeAndGet(listenersCounter);
         } else {
             scope = tableRow.getScope();

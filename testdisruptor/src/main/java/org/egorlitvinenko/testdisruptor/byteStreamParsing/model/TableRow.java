@@ -1,5 +1,8 @@
 package org.egorlitvinenko.testdisruptor.byteStreamParsing.model;
 
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.adapter.RowValuesAdapter;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.util.ColumnType;
+
 import java.sql.Date;
 import java.time.LocalDate;
 
@@ -70,7 +73,12 @@ public interface TableRow extends AutoCloseable {
         throw new IllegalStateException();
     }
 
+    @Deprecated
     int getIndexInRow(int type, int indexInGroup);
+
+    default int getIndexInRow(ColumnType type, int indexInGroup) {
+        return getIndexInRow(type.ordinal(), indexInGroup);
+    }
 
     boolean hasDoubles();
 
@@ -120,6 +128,10 @@ public interface TableRow extends AutoCloseable {
 
     default boolean isClosed() {
         throw new IllegalStateException();
+    }
+
+    default void visit(RowValuesAdapter rowValuesAdapter) {
+
     }
 
 }

@@ -26,5 +26,13 @@ public class Unsafed {
         return UNSAFE;
     }
 
+    public static long intAddress(long start, long offset) {
+        return start + (offset * 4);
+    }
+
+    public static long doubleAddress(long start, long offset) {
+        return start + (offset * 8);
+    }
+
 
 }

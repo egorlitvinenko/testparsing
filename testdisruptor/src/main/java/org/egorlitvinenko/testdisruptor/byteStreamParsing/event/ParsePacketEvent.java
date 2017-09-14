@@ -1,10 +1,12 @@
 package org.egorlitvinenko.testdisruptor.byteStreamParsing.event;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.adapter.RowValuesAdapter;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRow;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowIndexModel;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.TableRowTypeModel;
 import org.egorlitvinenko.testdisruptor.byteStreamParsing.model.group.States;
+import org.egorlitvinenko.testdisruptor.byteStreamParsing.util.ColumnType;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -33,9 +35,17 @@ public class ParsePacketEvent implements TableRow {
     private final TableRowIndexModel indexModel;
 
     private final int[] int32s;
+    private final String[] int32Strings;
+
     private final double[] doubles;
+    private final String[] doubleStrings;
+
     private final LocalDate[] localDates;
+    private final String[] localDateStrings;
+
     private final Date[] sqlDates;
+    private final String[] sqlDateStrings;
+
     private final String[] strings;
 
     private AtomicBoolean doubleIsFinished;
@@ -48,18 +58,51 @@ public class ParsePacketEvent implements TableRow {
     private int id;
 
     public ParsePacketEvent(TableRowIndexModel indexModel,
-                              TableRowTypeModel typeModel) {
+                            TableRowTypeModel typeModel) {
 
         this.id = -1;
 
         this.typeModel = typeModel;
         this.indexModel = indexModel;
 
-        this.localDates = hasLocalDates() ? new LocalDate[typeModel.localDateGroup.length] : null;
-        this.int32s = hasInt32() ? new int[typeModel.int32Group.length] : null;
-        this.doubles = hasDoubles() ? new double[typeModel.doubleGroup.length] : null;
-        this.strings = hasStrings() ? new String[typeModel.stringGroup.length] : null;
-        this.sqlDates = hasSqlDates() ? new Date[typeModel.sqlDateGroup.length] : null;
+        if (hasLocalDates()) {
+            this.localDates = new LocalDate[typeModel.localDateGroup.length];
+            this.localDateStrings = new String[typeModel.localDateGroup.length];
+        } else {
+            this.localDateStrings = null;
+            this.localDates = null;
+        }
+
+        if (hasInt32()) {
+            this.int32s = new int[typeModel.int32Group.length];
+            this.int32Strings = new String[typeModel.int32Group.length];
+        } else {
+            this.int32s = null;
+            this.int32Strings = null;
+        }
+
+        if (hasDoubles()) {
+            this.doubles = new double[typeModel.doubleGroup.length];
+            this.doubleStrings = new String[typeModel.doubleGroup.length];
+        } else {
+            this.doubles = null;
+            this.doubleStrings = null;
+        }
+
+        if (hasStrings()) {
+            this.strings = new String[typeModel.stringGroup.length];
+        } else {
+            this.strings = null;
+        }
+
+        if (hasSqlDates()) {
+            this.sqlDates = new Date[typeModel.sqlDateGroup.length];
+            this.sqlDateStrings = new String[typeModel.sqlDateGroup.length];
+        } else {
+            this.sqlDates = null;
+            this.sqlDateStrings = null;
+        }
+
 
         this.localDateIsFinished = new AtomicBoolean(!hasLocalDates());
         this.doubleIsFinished = new AtomicBoolean(!hasDoubles());
@@ -91,11 +134,11 @@ public class ParsePacketEvent implements TableRow {
     }
 
     public String getDoubleString(int rowIndex) {
-        return typeModel.doubleGroup.values[indexModel.indexInType[rowIndex]];
+        return doubleStrings[indexModel.indexInType[rowIndex]];
     }
 
     public void setDoubleString(String value, int rowIndex) {
-        typeModel.doubleGroup.values[indexModel.indexInType[rowIndex]] = value;
+        doubleStrings[indexModel.indexInType[rowIndex]] = value;
     }
 
     public void setDouble(double value, int rowIndex, byte state) {
@@ -105,7 +148,7 @@ public class ParsePacketEvent implements TableRow {
     }
 
     public String getInt32String(int rowIndex) {
-        return typeModel.int32Group.values[indexModel.indexInType[rowIndex]];
+        return int32Strings[indexModel.indexInType[rowIndex]];
     }
 
     public void setInt32(int value, int rowIndex, byte state) {
@@ -115,15 +158,15 @@ public class ParsePacketEvent implements TableRow {
     }
 
     public void setInt32String(String value, int rowIndex) {
-        typeModel.int32Group.values[indexModel.indexInType[rowIndex]] = value;
+        int32Strings[indexModel.indexInType[rowIndex]] = value;
     }
 
     public String getLocalDateString(int rowIndex) {
-        return typeModel.localDateGroup.values[indexModel.indexInType[rowIndex]];
+        return localDateStrings[indexModel.indexInType[rowIndex]];
     }
 
     public void setLocalDateString(String value, int rowIndex) {
-        typeModel.localDateGroup.values[indexModel.indexInType[rowIndex]] = value;
+        localDateStrings[indexModel.indexInType[rowIndex]] = value;
     }
 
     public void setLocalDate(LocalDate value, int rowIndex, byte state) {
@@ -133,11 +176,11 @@ public class ParsePacketEvent implements TableRow {
     }
 
     public String getSqlDateString(int rowIndex) {
-        return typeModel.sqlDateGroup.values[indexModel.indexInType[rowIndex]];
+        return sqlDateStrings[indexModel.indexInType[rowIndex]];
     }
 
     public void setSqlDateString(String value, int rowIndex) {
-        typeModel.sqlDateGroup.values[indexModel.indexInType[rowIndex]] = value;
+        sqlDateStrings[indexModel.indexInType[rowIndex]] = value;
     }
 
     public void setSqlDate(Date value, int rowIndex, byte state) {
@@ -148,6 +191,46 @@ public class ParsePacketEvent implements TableRow {
 
     public int getIndexInRow(int type, int indexInGroup) {
         return indexModel.indexByTypeInRow[type][indexInGroup];
+    }
+
+    public int getIndexInRow(ColumnType type, int indexInGroup) {
+        switch (type) {
+            case INT_32:
+                return indexModel.int32InRow[indexInGroup];
+            case DOUBLE:
+                return indexModel.doubleInRow[indexInGroup];
+            case LOCAL_DATE:
+                return indexModel.localDateInRow[indexInGroup];
+            case STRING:
+                return indexModel.stringInRow[indexInGroup];
+            case SQL_DATE:
+                return indexModel.sqlDateInRow[indexInGroup];
+            default:
+                return -1;
+        }
+    }
+
+    @Override
+    public void visit(RowValuesAdapter rowValuesAdapter) {
+        for (int i = 0; i < typeModel.types.length; ++i) {
+            switch (typeModel.types[i]) {
+                case INT_32:
+                    rowValuesAdapter.setInt32(int32s[indexModel.indexInType[i]], i);
+                    break;
+                case DOUBLE:
+                    rowValuesAdapter.setDouble(doubles[indexModel.indexInType[i]], i);
+                    break;
+                case LOCAL_DATE:
+                    rowValuesAdapter.setLocalDate(localDates[indexModel.indexInType[i]], i);
+                    break;
+                case STRING:
+                    rowValuesAdapter.setString(strings[indexModel.indexInType[i]], i);
+                    break;
+                case SQL_DATE:
+                    rowValuesAdapter.setSqlDate(sqlDates[indexModel.indexInType[i]], i);
+                    break;
+            }
+        }
     }
 
     public boolean hasDoubles() {
