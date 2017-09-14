@@ -16,7 +16,7 @@ Last results:
 * Disruptor implementation (UnivosityParsingBatchMain, ~200 000 rows per second, 1 date, 4 double, 4 integer, 1M rows, TableRowWithArrays) [1];
 * Disruptor implementation (UnivosityParsingPacketMain2, ~200000+ rows per second, 1 date, 4 double, 4 integer, 1M rows, Event implements TableRow) [1];
 * Univosity Only (UnivosityBaselineMain, ~ 83500 rows per second, 1 date, 4 double, 4 integer, 1M rows) [1];
-* Univosity + -Parsing- -> Validation + <a href="https://github.com/egorlitvinenko/clickhouse-input-client">http streaming</a>: 480k+ thrpt,  1 µs sample per operation (<a href="https://github.com/egorlitvinenko/testparsing/blob/master/testdisruptor/src/main/java/org/egorlitvinenko/testdisruptor/clickhousestream/FromCreateToLoadBenchmark.java">benchmark</a>) [1];
+* Univosity + ~~Parsing~~ -> Validation + <a href="https://github.com/egorlitvinenko/clickhouse-input-client">http streaming</a>: 480k+ thrpt,  1 µs sample per operation (<a href="https://github.com/egorlitvinenko/testparsing/blob/master/testdisruptor/src/main/java/org/egorlitvinenko/testdisruptor/clickhousestream/FromCreateToLoadBenchmark.java">benchmark</a>) [1];
 
 The results are not final. All implementations could/should be improved.
 
